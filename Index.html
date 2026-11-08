@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<title>Dashboard Hệ thống Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#f6f4ef; --panel:#ffffff; --ink:#23312f; --muted:#6d7b78;
+  --line:#e7e2d9; --accent:#2f6f6a; --accent2:#c6823a; --soft:#eef3f1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--ink);
+  background-image:radial-gradient(circle at 12% 8%,rgba(63,125,120,.06),transparent 42%),radial-gradient(circle at 88% 0%,rgba(198,144,74,.07),transparent 40%);}
+.wrap{max-width:1240px;margin:0 auto;padding:0 26px 60px}
+.hero{padding:40px 0 22px}
+.eyebrow{font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent2);font-weight:600}
+.hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,4.2vw,46px);line-height:1.06;margin:12px 0 10px;letter-spacing:-.01em}
+.hero p{color:var(--muted);font-size:15.5px;max-width:720px;line-height:1.55}
+.scope{display:inline-block;margin-top:14px;font-size:12.5px;color:var(--muted);background:var(--soft);border:1px solid var(--line);padding:5px 12px;border-radius:7px}
+.filters{position:sticky;top:0;z-index:50;background:rgba(246,244,239,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 0}
+.fin{max-width:1240px;margin:0 auto;padding:0 26px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.fgrp{display:flex;flex-direction:column;gap:4px}
+.fgrp label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.fgrp select{font-family:inherit;font-size:13.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 11px;min-width:150px;cursor:pointer;outline:none}
+.fgrp select:focus{border-color:var(--accent)}
+.freset{margin-left:auto;align-self:flex-end;font-family:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--soft);border:1px solid var(--line);border-radius:7px;padding:9px 15px;cursor:pointer}
+.freset:hover{background:#e4ece9}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:26px 0 12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:20px}
+.kpi .kh{color:var(--muted);font-size:12.5px;font-weight:600;letter-spacing:.03em}
+.kpi .kv{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,2.8vw,34px);margin-top:12px;line-height:1}
+.kpi .ks{font-size:12.5px;color:var(--muted);margin-top:9px}
+.chip{font-weight:600;padding:2px 7px;border-radius:5px;font-size:11.5px}
+.chip.up{color:#2c5f54;background:#dfeae5}
+.chip.down{color:#8e4a37;background:#f3e2db}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 24px}
+.row{display:grid;gap:16px;margin-bottom:16px}
+.row.r2{grid-template-columns:1.55fr 1fr}
+.row.r2b{grid-template-columns:1fr 1.55fr}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:20px}
+.card h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;letter-spacing:-.01em}
+.card .sub{font-size:12.5px;color:var(--muted);margin:3px 0 8px}
+.chart{width:100%;height:320px}
+.chart.sm{height:290px}
+.insight{margin-top:12px;background:var(--soft);border-radius:7px;padding:11px 13px;font-size:13px;color:#45544f;line-height:1.5}
+.insight b{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.bar-cell{position:relative}
+.bar-cell .bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:60%;background:#dfeae5;border-radius:3px;z-index:0}
+.bar-cell span{position:relative;z-index:1;font-weight:600}
+.foot{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.7}
+.foot b{color:var(--ink)}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:70vh;gap:16px;color:var(--muted)}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.errbox{max-width:620px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:9px;padding:26px;color:#8e4a37}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.row.r2,.row.r2b{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+// ---------- helpers ----------
+const PAL = ['#3f7d78','#c6904a','#7a93a8','#9c6f84','#6f9a6a'];
+const fmtVND = n => n>=1e9 ? (n/1e9).toFixed(2).replace(/\.?0+$/,'')+' t\u1ef7'
+  : n>=1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+' tr'
+  : new Intl.NumberFormat('vi-VN').format(Math.round(n));
+const fmtNum = n => new Intl.NumberFormat('vi-VN').format(Math.round(n));
+const mLabel = m => { const d=String(m).split('-'); return 'T'+parseInt(d[1])+'/'+d[0].slice(2); };
+const sum = (arr,f) => arr.reduce((a,b)=>a+f(b),0);
+const TIP = {backgroundColor:'#fff',borderWidth:0,textStyle:{color:'#23312f',fontFamily:'Be Vietnam Pro',fontSize:12},
+  extraCssText:'box-shadow:0 6px 22px rgba(0,0,0,.12);border-radius:7px;padding:9px 12px;'};
+
+// ---------- generic ECharts wrapper ----------
+function EChart({ option, className }) {
+  const ref = useRef(null);
+  const inst = useRef(null);
+  useEffect(() => {
+    inst.current = echarts.init(ref.current);
+    const onR = () => inst.current && inst.current.resize();
+    window.addEventListener('resize', onR);
+    return () => { window.removeEventListener('resize', onR); inst.current.dispose(); };
+  }, []);
+  useEffect(() => { if (inst.current && option) inst.current.setOption(option, true); }, [option]);
+  return <div ref={ref} className={className || 'chart'} />;
+}
+
+// ---------- data loader (Apps Script OR local mock) ----------
+function loadBootstrap() {
+  return new Promise((resolve, reject) => {
+    if (window.__MOCK__) { resolve(window.__MOCK__); return; }
+    if (window.google && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getBootstrap();
+    } else {
+      reject(new Error('Kh\u00f4ng t\u00ecm th\u1ea5y google.script.run (ch\u1ea1y ngo\u00e0i Apps Script?).'));
+    }
+  });
+}
+
+// ---------- App ----------
+function App() {
+  const [boot, setBoot] = useState(null);
+  const [err, setErr] = useState(null);
+  const [f, setF] = useState({ mien:'', cum:'', shop:'', from:'', to:'' });
+
+  useEffect(() => {
+    loadBootstrap().then(b => {
+      const months = b.months || [];
+      setF(s => ({ ...s, from: months[0]||'', to: months[months.length-1]||'' }));
+      setBoot(b);
+    }).catch(e => setErr(String(e && e.message ? e.message : e)));
+  }, []);
+
+  if (err) return <div className="errbox"><b>Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u.</b><br/><br/>{err}<br/><br/>
+    Ki\u1ec3m tra: (1) \u0111\u00e3 Deploy Web App, (2) ID sheet \u0111\u00fang trong Code.gs, (3) sheet t\u00ean "DATA".</div>;
+  if (!boot) return <div className="loading"><div className="spin"></div>\u0110ang t\u1ea3i d\u1eef li\u1ec7u t\u1eeb Google Sheets\u2026</div>;
+
+  return <Dashboard boot={boot} f={f} setF={setF} />;
+}
+
+// ---------- Dashboard ----------
+function Dashboard({ boot, f, setF }) {
+  const rows = boot.rows, months = boot.months, meta = boot.meta || {};
+  const miens = Object.keys(meta);
+  const cums = f.mien ? Object.keys(meta[f.mien] || {}) : [...new Set(rows.map(r=>r.Cum))];
+  const shops = (() => {
+    if (f.mien && f.cum) return Object.keys((meta[f.mien]||{})[f.cum] || {});
+    const pool = rows.filter(r => (!f.mien||r.Mien===f.mien) && (!f.cum||r.Cum===f.cum));
+    return [...new Set(pool.map(r=>r.Shop_Ten))];
+  })();
+
+  const data = useMemo(() => rows.filter(r =>
+    (!f.mien||r.Mien===f.mien) && (!f.cum||r.Cum===f.cum) && (!f.shop||r.Shop_Ten===f.shop) &&
+    r.Thang>=f.from && r.Thang<=f.to), [rows, f]);
+
+  // reset dependent filters when parent changes
+  const onMien = v => setF(s => ({ ...s, mien:v, cum:'', shop:'' }));
+  const onCum  = v => setF(s => ({ ...s, cum:v, shop:'' }));
+
+  const totRev = sum(data, r=>r.Doanh_thu);
+  const totOrd = sum(data, r=>r.So_don);
+  const totTar = sum(data, r=>r.Chi_tieu_DT);
+  const nShop  = new Set(data.map(r=>r.Shop_ID)).size;
+  const tarPct = totTar ? totRev/totTar*100 : 0;
+
+  const mkeys = [...new Set(data.map(r=>r.Thang))].sort();
+  const revByM = mkeys.map(m => sum(data.filter(r=>r.Thang===m), r=>r.Doanh_thu));
+  const tarByM = mkeys.map(m => sum(data.filter(r=>r.Thang===m), r=>r.Chi_tieu_DT));
+  const ordByM = mkeys.map(m => sum(data.filter(r=>r.Thang===m), r=>r.So_don));
+  const cmp = arr => (arr.length<2||!arr[0]) ? null : (arr[arr.length-1]-arr[0])/arr[0]*100;
+  const revC = cmp(revByM), ordC = cmp(ordByM);
+
+  const scope = [f.mien,f.cum,f.shop].filter(Boolean);
+  const scopeTxt = (scope.length?scope.join(' \u203a '):'To\u00e0n h\u1ec7 th\u1ed1ng') + '  \u00b7  ' + mLabel(f.from)+' \u2013 '+mLabel(f.to);
+
+  // chart options
+  const trendOpt = {
+    grid:{left:58,right:18,top:38,bottom:30},
+    legend:{right:0,top:0,icon:'roundRect',itemWidth:12,itemHeight:12,textStyle:{color:'#6d7b78'}},
+    tooltip:{trigger:'axis',...TIP,valueFormatter:v=>fmtVND(v)+' \u0111'},
+    xAxis:{type:'category',data:mkeys.map(mLabel),axisLine:{lineStyle:{color:'#d8d2c7'}},axisLabel:{color:'#6d7b78'}},
+    yAxis:{type:'value',axisLabel:{color:'#6d7b78',formatter:v=>fmtVND(v)},splitLine:{lineStyle:{color:'#efeae1'}}},
+    series:[
+      {name:'Doanh thu',type:'line',smooth:true,data:revByM,symbol:'circle',symbolSize:7,lineStyle:{width:3,color:PAL[0]},itemStyle:{color:PAL[0]},areaStyle:{color:'rgba(63,125,120,.12)'}},
+      {name:'Ch\u1ec9 ti\u00eau',type:'line',smooth:true,data:tarByM,symbol:'none',lineStyle:{width:2,type:'dashed',color:PAL[1]},itemStyle:{color:PAL[1]}}
+    ]
+  };
+  const pieData = miens.map(m=>({name:m,value:sum(data.filter(r=>r.Mien===m),r=>r.Doanh_thu)})).filter(x=>x.value>0);
+  const pieOpt = {
+    tooltip:{trigger:'item',...TIP,valueFormatter:v=>fmtVND(v)+' \u0111'},
+    legend:{bottom:0,icon:'circle',textStyle:{color:'#6d7b78',fontSize:12}}, color:PAL,
+    series:[{type:'pie',radius:['46%','70%'],center:['50%','44%'],avoidLabelOverlap:true,itemStyle:{borderColor:'#fff',borderWidth:2},label:{formatter:'{d}%',color:'#45544f'},data:pieData}]
+  };
+  const curCums = [...new Set(data.map(r=>r.Cum))];
+  const barData = curCums.map(c=>({name:c,value:sum(data.filter(r=>r.Cum===c),r=>r.Doanh_thu)})).sort((a,b)=>a.value-b.value);
+  const barOpt = {
+    grid:{left:120,right:30,top:12,bottom:24},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},...TIP,valueFormatter:v=>fmtVND(v)+' \u0111'},
+    xAxis:{type:'value',axisLabel:{color:'#6d7b78',formatter:v=>fmtVND(v)},splitLine:{lineStyle:{color:'#efeae1'}}},
+    yAxis:{type:'category',data:barData.map(x=>x.name),axisLine:{lineStyle:{color:'#d8d2c7'}},axisLabel:{color:'#45544f'}},
+    series:[{type:'bar',data:barData.map(x=>x.value),barWidth:'58%',itemStyle:{color:PAL[0],borderRadius:[0,4,4,0]}}]
+  };
+  // top shops
+  const byShop = {};
+  data.forEach(r=>{const k=r.Shop_ID; if(!byShop[k])byShop[k]={ten:r.Shop_Ten,cum:r.Cum,rev:0,ord:0}; byShop[k].rev+=r.Doanh_thu; byShop[k].ord+=r.So_don;});
+  const top = Object.values(byShop).sort((a,b)=>b.rev-a.rev).slice(0,10);
+  const maxR = top.length?top[0].rev:1;
+
+  const Sel = ({label,val,onChange,opts,allTxt='T\u1ea5t c\u1ea3'}) => (
+    <div className="fgrp"><label>{label}</label>
+      <select value={val} onChange={e=>onChange(e.target.value)}>
+        <option value="">{allTxt}</option>
+        {opts.map(o=><option key={o} value={o}>{o}</option>)}
+      </select></div>);
+
+  return (<React.Fragment>
+    <div className="filters"><div className="fin">
+      <Sel label="Mi\u1ec1n" val={f.mien} onChange={onMien} opts={miens}/>
+      <Sel label="C\u1ee5m" val={f.cum} onChange={onCum} opts={cums}/>
+      <Sel label="Shop" val={f.shop} onChange={v=>setF(s=>({...s,shop:v}))} opts={shops}/>
+      <div className="fgrp"><label>T\u1eeb th\u00e1ng</label>
+        <select value={f.from} onChange={e=>setF(s=>({...s,from:e.target.value}))}>{months.map(m=><option key={m} value={m}>{mLabel(m)}</option>)}</select></div>
+      <div className="fgrp"><label>\u0110\u1ebfn th\u00e1ng</label>
+        <select value={f.to} onChange={e=>setF(s=>({...s,to:e.target.value}))}>{months.map(m=><option key={m} value={m}>{mLabel(m)}</option>)}</select></div>
+      <button className="freset" onClick={()=>setF({mien:'',cum:'',shop:'',from:months[0],to:months[months.length-1]})}>\u21ba \u0110\u1eb7t l\u1ea1i</button>
+    </div></div>
+
+    <div className="wrap">
+      <div className="hero">
+        <div className="eyebrow">B\u00e1o c\u00e1o v\u1eadn h\u00e0nh \u00b7 {new Set(rows.map(r=>r.Shop_ID)).size} Shop</div>
+        <h1>H\u1ec7 th\u1ed1ng Shop \u0111ang ho\u1ea1t \u0111\u1ed9ng ra sao?</h1>
+        <p>Theo d\u00f5i doanh thu, s\u1ed1 \u0111\u01a1n v\u00e0 m\u1ee9c \u0111\u1ea1t ch\u1ec9 ti\u00eau to\u00e0n h\u1ec7 th\u1ed1ng \u2014 l\u1ecdc theo Mi\u1ec1n, C\u1ee5m, Shop v\u00e0 th\u1eddi gian. D\u1eef li\u1ec7u l\u1ea5y tr\u1ef1c ti\u1ebfp t\u1eeb Google Sheets.</p>
+        <div className="scope">\u0110ang xem: {scopeTxt}</div>
+      </div>
+
+      <div className="kpis">
+        <Kpi title="T\u1ed5ng doanh thu" value={fmtVND(totRev)+' \u0111'} sub={revC==null?null:<span><span className={'chip '+(revC>=0?'up':'down')}>{(revC>=0?'\u25b2':'\u25bc')+' '+Math.abs(revC).toFixed(1)+'%'}</span> so v\u1edbi \u0111\u1ea7u k\u1ef3</span>}/>
+        <Kpi title="T\u1ed5ng s\u1ed1 \u0111\u01a1n" value={fmtNum(totOrd)} sub={ordC==null?null:<span><span className={'chip '+(ordC>=0?'up':'down')}>{(ordC>=0?'\u25b2':'\u25bc')+' '+Math.abs(ordC).toFixed(1)+'%'}</span> so v\u1edbi \u0111\u1ea7u k\u1ef3</span>}/>
+        <Kpi title="Shop ho\u1ea1t \u0111\u1ed9ng" value={nShop} sub="c\u00f3 ph\u00e1t sinh d\u1eef li\u1ec7u"/>
+        <Kpi title="% \u0111\u1ea1t ch\u1ec9 ti\u00eau" value={tarPct.toFixed(1)+'%'} sub={<span><span className={'chip '+(tarPct>=100?'up':'down')}>{tarPct>=100?'\u0110\u1ea1t':'Ch\u01b0a \u0111\u1ea1t'}</span> ch\u1ec9 ti\u00eau DT</span>}/>
+      </div>
+      <div className="hint">Ngu\u1ed3n: Google Sheets \u00b7 {fmtNum(data.length)} d\u00f2ng trong ph\u1ea1m vi l\u1ecdc \u00b7 \u0110\u01a1n v\u1ecb: VND \u00b7 C\u1eadp nh\u1eadt: {boot.updatedAt||''}</div>
+
+      <div className="row r2">
+        <div className="card"><h3>Xu h\u01b0\u1edbng doanh thu theo th\u00e1ng</h3><div className="sub">Doanh thu th\u1ef1c t\u1ebf so v\u1edbi ch\u1ec9 ti\u00eau (VND)</div>
+          <EChart option={trendOpt}/>
+          <div className="insight">{revC==null?'Ch\u1ecdn \u00edt nh\u1ea5t 2 th\u00e1ng \u0111\u1ec3 xem xu h\u01b0\u1edbng.':<span>Doanh thu k\u1ef3 cu\u1ed1i <b>{(revC>=0?'t\u0103ng ':'gi\u1ea3m ')+Math.abs(revC).toFixed(1)+'%'}</b> so v\u1edbi \u0111\u1ea7u k\u1ef3. {tarPct>=100?<span>Hi\u1ec7n <b>v\u01b0\u1ee3t ch\u1ec9 ti\u00eau</b> t\u1ed5ng th\u1ec3.</span>:<span>T\u1ed5ng th\u1ec3 <b>ch\u01b0a \u0111\u1ea1t ch\u1ec9 ti\u00eau</b> ({tarPct.toFixed(1)}%).</span>}</span>}</div></div>
+        <div className="card"><h3>C\u01a1 c\u1ea5u doanh thu theo Mi\u1ec1n</h3><div className="sub">T\u1ef7 tr\u1ecdng \u0111\u00f3ng g\u00f3p t\u1eebng mi\u1ec1n</div>
+          <EChart option={pieOpt} className="chart sm"/>
+          <div className="insight">{pieData.length?(()=>{const t=[...pieData].sort((a,b)=>b.value-a.value)[0];return <span><b>{t.name}</b> \u0111\u00f3ng g\u00f3p l\u1edbn nh\u1ea5t v\u1edbi <b>{(t.value/totRev*100).toFixed(0)}%</b> t\u1ed5ng doanh thu.</span>;})():'Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.'}</div></div>
+      </div>
+
+      <div className="row r2b">
+        <div className="card"><h3>Doanh thu theo C\u1ee5m</h3><div className="sub">So s\u00e1nh c\u00e1c c\u1ee5m trong ph\u1ea1m vi l\u1ecdc</div>
+          <EChart option={barOpt}/>
+          <div className="insight">{barData.length?<span>C\u1ee5m <b>{barData[barData.length-1].name}</b> d\u1eabn \u0111\u1ea7u ({fmtVND(barData[barData.length-1].value)} \u0111). Ch\u00eanh l\u1ec7ch gi\u1eefa cao nh\u1ea5t v\u00e0 th\u1ea5p nh\u1ea5t cho th\u1ea5y d\u01b0 \u0111\u1ecba t\u0103ng tr\u01b0\u1edfng.</span>:'Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.'}</div></div>
+        <div className="card"><h3>Top Shop theo doanh thu</h3><div className="sub">10 shop d\u1eabn \u0111\u1ea7u trong ph\u1ea1m vi l\u1ecdc</div>
+          <div style={{maxHeight:360,overflow:'auto'}}>
+            <table><thead><tr><th>#</th><th>Shop</th><th>C\u1ee5m</th><th>Doanh thu</th><th>S\u1ed1 \u0111\u01a1n</th></tr></thead>
+            <tbody>{top.map((s,i)=>(<tr key={i}><td style={{color:'#6d7b78'}}>{i+1}</td><td>{s.ten}</td><td>{s.cum}</td>
+              <td className="bar-cell"><span className="bar" style={{width:(s.rev/maxR*100)+'%'}}></span><span>{fmtVND(s.rev)}</span></td>
+              <td>{fmtNum(s.ord)}</td></tr>))}</tbody></table></div></div>
+      </div>
+
+      <div className="foot">
+        <b>Ngu\u1ed3n d\u1eef li\u1ec7u:</b> Google Sheets \u2013 sheet DATA (\u0111\u1ecdc qua Apps Script).<br/>
+        <b>C\u00e1ch t\u00ednh:</b> Doanh thu = t\u1ed5ng Doanh_thu theo ph\u1ea1m vi l\u1ecdc \u00b7 % \u0111\u1ea1t ch\u1ec9 ti\u00eau = T\u1ed5ng Doanh_thu / T\u1ed5ng Chi_tieu_DT \u00b7 \u25b2/\u25bc l\u00e0 th\u00e1ng cu\u1ed1i so v\u1edbi th\u00e1ng \u0111\u1ea7u trong kho\u1ea3ng ch\u1ecdn.<br/>
+        <b>C\u1eadp nh\u1eadt:</b> D\u1eef li\u1ec7u l\u1ea5y tr\u1ef1c ti\u1ebfp t\u1eeb Sheets (cache {boot.updatedAt?('t\u1ea1i '+boot.updatedAt):'ng\u1eafn'}). Th\u00eam Shop/th\u00e1ng = th\u00eam d\u00f2ng, kh\u00f4ng c\u1ea7n s\u1eeda dashboard.
+      </div>
+    </div>
+  </React.Fragment>);
+}
+
+function Kpi({ title, value, sub }) {
+  return <div className="kpi"><div className="kh">{title}</div><div className="kv">{value}</div><div className="ks">{sub}</div></div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+</script>
+</body>
+</html>
