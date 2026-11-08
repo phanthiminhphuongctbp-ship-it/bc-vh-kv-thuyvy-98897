@@ -158,7 +158,7 @@ td.nm{color:var(--loss)} td.pg{color:var(--gain)} .net{font-weight:700}
     <section class="kpis" id="l-kpis" aria-live="polite"></section>
     <section class="box">
       <div class="tbar">
-        <div class="legend"><span><i class="dot" style="background:var(--loss)"></i>Mất: SL chênh lệch âm</span><span><i class="dot" style="background:var(--gain)"></i>Dư: SL chênh lệch dương</span><span><i class="dot" style="background:var(--warm-ink)"></i>Nền cam: nhóm dễ bị mất</span></div>
+        <div class="legend"><span><i class="dot" style="background:var(--loss)"></i>Mất: SL chênh lệch dương (tồn kho &gt; kiểm đếm)</span><span><i class="dot" style="background:var(--gain)"></i>Dư: SL chênh lệch âm (kiểm đếm &gt; tồn kho)</span><span><i class="dot" style="background:var(--warm-ink)"></i>Nền cam: nhóm dễ bị mất</span></div>
         <span class="meta" id="l-count"></span>
       </div>
       <div class="scroll tall"><table id="lt"><thead><tr id="l-thead"></tr></thead><tbody id="l-tbody"></tbody></table></div>
@@ -299,8 +299,8 @@ function lCompute(){
     if(L.de!=='all'&&String(p[4])!==L.de) continue;
     if(q&&!p[1].toLowerCase().includes(q)) continue;
     let a=acc.get(r[1]); if(!a){a={name:p[1],loai,nhom:D.nhom[p[3]],de:p[4],lq:0,loss:0,gq:0,gain:0};acc.set(r[1],a)}
-    if(r[3]<0) a.loss+=-r[3]; else a.gain+=r[3];
-    if(r[2]<0) a.lq+=-r[2]; else a.gq+=r[2];
+    if(r[3]>0) a.loss+=r[3]; else a.gain+=-r[3];
+    if(r[2]>0) a.lq+=r[2]; else a.gq+=-r[2];
   }
   const list=[...acc.values()].filter(a=>a.loss>0||a.gain>0);
   const tl=list.reduce((s,a)=>s+a.loss,0), tg=list.reduce((s,a)=>s+a.gain,0);
