@@ -1,0 +1,10 @@
+THU MUC DATA - NOI DAT 5 FILE EXCEL CUA BAO CAO
+
+Dat dung ten file (chu thuong, khong dau, duoi .xlsx):
+  kiemke.xlsx                 -> bao cao mat mat kiem ke
+  doanhthu_thang_nay.xlsx     -> doanh thu theo nganh, thang nay
+  doanhthu_thang_truoc.xlsx   -> doanh thu theo nganh, thang truoc
+  bill_thang_nay.xlsx         -> bill va doanh thu online, thang nay
+  bill_thang_truoc.xlsx       -> bill va doanh thu online, thang truoc
+
+File nao chua co thi trang van chay, phan do hien "chua co du lieu".

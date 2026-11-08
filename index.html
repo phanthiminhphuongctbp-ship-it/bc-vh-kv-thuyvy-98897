@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Báo Cáo Vận Hành KV Thúy Vy</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,6 +126,8 @@ td.nm{color:var(--loss)} td.pg{color:var(--gain)} .net{font-weight:700}
 @media (max-width:460px){.filters.l{grid-template-columns:1fr}.seg{display:flex}.seg button{flex:1;padding-inline:6px}}
 @media (prefers-reduced-motion:reduce){.side{transition:none}}
 </style>
+</head>
+<body>
 
 <div class="app">
   <div class="topbar"><button id="burger" type="button" aria-label="Mở danh mục" aria-expanded="false">☰ Danh mục</button><b id="tbTitle"></b></div>
@@ -235,7 +242,7 @@ function assemble(snap){
   const by={};
   snap.docs.forEach(d=>{const x=d.data(); if(!x||!x.k) return; (by[x.k]=by[x.k]||{n:x.n,parts:{}}); by[x.k].parts[x.i]=x.s; by[x.k].n=Math.max(by[x.k].n,x.n);});
   let changed=false;
-  for(const k of KEYS){ const b=by[k]; if(!b) continue; store.known[k]=b.n;
+  for(const k of KEYS){ if(AUTO[k]===true) continue; const b=by[k]; if(!b) continue; store.known[k]=b.n;
     let ok=true,js=''; for(let i=0;i<b.n;i++){ if(b.parts[i]==null){ok=false;break} js+=b.parts[i]; }
     if(!ok||js===store.sig?.[k]) continue;
     try{ const o=JSON.parse(js); DS[k]={data:o.data,meta:o.meta}; (store.sig=store.sig||{})[k]=js; changed=true; }catch(e){}
@@ -403,25 +410,8 @@ function rRender(){
 $('r-shop').addEventListener('change',e=>{R.shop=e.target.value;rRender()});
 $('r-day').addEventListener('change',e=>{R.day=e.target.value;rRender()});
 
-/* ================= CẬP NHẬT DỮ LIỆU ================= */
-const U={busy:{},res:{}};
-function uRender(){
-  const m=store.state; const msg={ok:'Dữ liệu tải lên sẽ được lưu lại, lần sau mở là có ngay và người được chia sẻ cũng thấy.',local:'Chưa lưu được dữ liệu (cần đăng nhập). Dữ liệu tải lên chỉ dùng trong lần mở này.','chờ':'Đang kết nối nơi lưu dữ liệu…',slow:'Chưa kết nối được nơi lưu dữ liệu. Dữ liệu tải lên có thể chỉ dùng trong lần mở này.',error:'Không đọc được dữ liệu đã lưu. Dữ liệu tải lên có thể chỉ dùng trong lần mở này.'}[m]||'';
-  $('u-status').textContent=msg;
-  $('u-list').innerHTML=KEYS.map(k=>{const M=DS[k].meta, kind=k==='loss'?'loss':k.startsWith('dt')?'dt':'bill';
-    const rg=M.d0?` · ${esc(M.d0)} – ${esc(M.d1)}`:'';
-    return `<div class="dsc"><b>${TITLES[k]}${M.upd?'<span class="pill on">Đã cập nhật</span>':''}</b>
-      <div class="st">${esc(M.src)}${M.rows?` · ${M.rows.toLocaleString('vi-VN')} dòng`:''}${rg}${M.upd?`<br>Cập nhật ${esc(M.upd)}`:''}</div>
-      <div class="need">${NEED[kind]}</div>
-      <div><input type="file" id="uf-${k}" accept=".xlsx,.xls" hidden><button class="btn p" data-k="${k}" type="button" ${U.busy[k]?'disabled':''}>${U.busy[k]?'Đang xử lý…':'Chọn file mới nhất'}</button></div>
-      <div class="res ${U.res[k]?.ok?'ok':'bad'}">${esc(U.res[k]?.t||'')}</div></div>`}).join('');
-}
-$('u-list').addEventListener('click',e=>{const b=e.target.closest('button[data-k]'); if(b) $('uf-'+b.dataset.k).click()});
-$('u-list').addEventListener('change',async e=>{
-  const inp=e.target; if(inp.type!=='file'||!inp.files[0]) return; const k=inp.id.slice(3), f=inp.files[0];
-  U.busy[k]=true; U.res[k]=null; uRender();
-  try{
-    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+function parseBuf(k,buf){
+    const wb=XLSX.read(buf,{type:'array'});
     const ws=wb.Sheets['Dữ liệu']||wb.Sheets[wb.SheetNames[0]];
     const a=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
     if(!a.length) throw new Error('File trống.');
@@ -453,6 +443,46 @@ $('u-list').addEventListener('change',async e=>{
       data={rows:out}; rows=out.length; d0=fmtD(dmin); d1=fmtD(dmax);
     }
     if(!rows) throw new Error('File không có dòng dữ liệu.');
+    return {data,rows,d0,d1};
+}
+
+/* ================= TỰ ĐỌC TỪ THƯ MỤC data ================= */
+const FILES = {loss:'data/kiemke.xlsx', dtCur:'data/doanhthu_thang_nay.xlsx', dtPrev:'data/doanhthu_thang_truoc.xlsx', billCur:'data/bill_thang_nay.xlsx', billPrev:'data/bill_thang_truoc.xlsx'};
+const AUTO = {};   // key -> true nếu đã đọc được từ thư mục data
+async function autoLoad(){
+  if(!/^https?:$/.test(location.protocol)) return;
+  await Promise.all(KEYS.map(async k=>{
+    try{
+      const r=await fetch(FILES[k]+'?v='+Date.now(),{cache:'no-store'});
+      if(!r.ok) return;
+      const lm=r.headers.get('last-modified');
+      const P=parseBuf(k,await r.arrayBuffer());
+      const upd=lm?new Date(lm).toLocaleString('vi-VN',{hour12:false,dateStyle:'short',timeStyle:'short'}):'';
+      DS[k]={data:P.data,meta:{src:FILES[k],rows:P.rows,d0:P.d0,d1:P.d1,upd}}; AUTO[k]=true;
+    }catch(err){ AUTO[k]='lỗi: '+err.message; }
+  }));
+  L.built=null; R.sig=null; refreshAll();
+}
+
+/* ================= CẬP NHẬT DỮ LIỆU ================= */
+const U={busy:{},res:{}};
+function uRender(){
+  const m=store.state; const msg={ok:'Dữ liệu tải lên sẽ được lưu lại, lần sau mở là có ngay và người được chia sẻ cũng thấy.',local:'Chưa lưu được dữ liệu (cần đăng nhập). Dữ liệu tải lên chỉ dùng trong lần mở này.','chờ':'Đang kết nối nơi lưu dữ liệu…',slow:'Chưa kết nối được nơi lưu dữ liệu. Dữ liệu tải lên có thể chỉ dùng trong lần mở này.',error:'Không đọc được dữ liệu đã lưu. Dữ liệu tải lên có thể chỉ dùng trong lần mở này.'}[m]||'';
+  const nAuto=KEYS.filter(k=>AUTO[k]===true).length; $('u-status').textContent=nAuto?`Đang đọc tự động ${nAuto}/5 file từ thư mục data của trang. Muốn cập nhật cho cả team: thay file Excel cùng tên trong thư mục data trên GitHub. File tải lên ở đây chỉ để xem thử trên máy này.`:msg;
+  $('u-list').innerHTML=KEYS.map(k=>{const M=DS[k].meta, kind=k==='loss'?'loss':k.startsWith('dt')?'dt':'bill';
+    const rg=M.d0?` · ${esc(M.d0)} – ${esc(M.d1)}`:'';
+    return `<div class="dsc"><b>${TITLES[k]}${M.upd?'<span class="pill on">Đã cập nhật</span>':''}</b>
+      <div class="st">${esc(M.src)}${M.rows?` · ${M.rows.toLocaleString('vi-VN')} dòng`:''}${rg}${M.upd?`<br>Cập nhật ${esc(M.upd)}`:''}</div>
+      <div class="need">${NEED[kind]}<br>Tên file trong thư mục data: <b>${esc(FILES[k].replace('data/',''))}</b>${typeof AUTO[k]==='string'?'<br>'+esc(AUTO[k]):''}</div>
+      <div><input type="file" id="uf-${k}" accept=".xlsx,.xls" hidden><button class="btn p" data-k="${k}" type="button" ${U.busy[k]?'disabled':''}>${U.busy[k]?'Đang xử lý…':'Chọn file mới nhất'}</button></div>
+      <div class="res ${U.res[k]?.ok?'ok':'bad'}">${esc(U.res[k]?.t||'')}</div></div>`}).join('');
+}
+$('u-list').addEventListener('click',e=>{const b=e.target.closest('button[data-k]'); if(b) $('uf-'+b.dataset.k).click()});
+$('u-list').addEventListener('change',async e=>{
+  const inp=e.target; if(inp.type!=='file'||!inp.files[0]) return; const k=inp.id.slice(3), f=inp.files[0];
+  U.busy[k]=true; U.res[k]=null; uRender();
+  try{
+    const P=parseBuf(k,await f.arrayBuffer()); const data=P.data,rows=P.rows,d0=P.d0,d1=P.d1;
     const upd=new Date().toLocaleString('vi-VN',{hour12:false,dateStyle:'short',timeStyle:'short'});
     DS[k]={data,meta:{src:f.name,rows,d0,d1,upd}};
     if(k==='loss') L.built=null; R.sig=null;
@@ -469,5 +499,7 @@ $('u-roll').addEventListener('click',async()=>{
   b.disabled=false; uRender();
 });
 
-route(); initDB();
+route(); initDB(); autoLoad();
 </script>
+</body>
+</html>
