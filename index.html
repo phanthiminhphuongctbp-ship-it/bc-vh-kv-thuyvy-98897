@@ -243,6 +243,39 @@ sup.dr.t3{background:var(--gain-bg);color:var(--gain)}
 .t10 .bar{display:flex;align-items:center;gap:8px} .t10 .bar u{flex:1;height:14px;border-radius:4px;background:var(--line-soft);text-decoration:none;overflow:hidden} .t10 .bar u i{display:block;height:100%;background:var(--loss);opacity:.8;border-radius:4px}
 .t10 .bar span{font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:700;min-width:84px;text-align:right}
 @media (max-width:700px){.t10 button{grid-template-columns:22px 1fr}.t10 .bar{grid-column:2}}
+
+/* ===== Điện thoại: gọn hơn ===== */
+.ftog,.shint,.totop{display:none}
+@media (max-width:700px){
+  .main{padding:10px 10px 70px} .wrap{gap:10px} h1{font-size:19px} .sub{font-size:12px;line-height:1.4}
+  .ftog{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+  .ftog b{font-size:13.5px;white-space:nowrap} .ftog span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:right}
+  .ftog i{font-style:normal;color:var(--muted);font-size:12px}
+  .filters.fcol{display:none}
+  .filters{padding:12px;gap:10px}
+  .kpis{gap:8px} .kpi{padding:9px 11px;border-radius:9px} .kpi .k{font-size:10px;letter-spacing:.04em} .kpi .v{font-size:17px;margin-top:3px} .kpi .s{font-size:11px;line-height:1.35}
+  #l-kpis .kpi:first-child{grid-column:auto}
+  .insight{padding:10px 12px;font-size:12.5px;gap:4px;line-height:1.5}
+  .box>.hd,.tbar{padding:10px 12px} .box>.hd h2{font-size:14px} .meta{font-size:11.5px}
+  .fold>summary h2::after{content:' ▸';font-size:12px} .fold[open]>summary h2::after{content:' ▾'}
+  table{font-size:12px} th,td{padding:6px 7px}
+  .rt,.rt.rk,.rt.pt,.rt.pt.sm,.lrk,.lng,.lmn,.lp{min-width:0}
+  .rt thead th:first-child,.rt.rk thead th:first-child,.rt.pt thead th:first-child{min-width:112px;max-width:136px}
+  .rt tbody th{min-width:112px;max-width:136px;box-shadow:2px 0 4px -2px rgba(0,0,0,.18);font-size:12px}
+  .rt thead th{font-size:11px;padding:6px 6px} .rt.rk tbody th small,.rt.pt tbody th small{font-size:10px;margin-left:0}
+  .rkn{width:18px;height:18px;font-size:10px;margin-right:5px}
+  td.name{min-width:150px;max-width:190px}
+  .rt.pt thead th:first-child,.rt.pt tbody th{min-width:150px;max-width:170px} .rt.pt tbody th small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+  .rt.pt tbody th b{font-size:12.5px}
+  .bw{min-width:96px;gap:5px} .bw span{min-width:44px;font-size:12px}
+  #lt th,#lt td{padding:6px 7px} #lt thead th{font-size:11px}
+  .shint{display:block;font-size:11px;color:var(--muted);padding:6px 12px 0;text-align:right}
+  .t10 button{padding:6px 4px} .t10 .bar span{min-width:70px;font-size:12px}
+  .lnote{padding:8px 12px;font-size:12px}
+  .btn{padding:8px 12px;font-size:13px}
+  .totop{position:fixed;right:12px;bottom:14px;z-index:15;width:42px;height:42px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;box-shadow:0 4px 14px rgba(0,0,0,.2);cursor:pointer;align-items:center;justify-content:center}
+  .totop.on{display:flex}
+}
 </style>
 </head>
 <body>
@@ -1107,6 +1140,34 @@ $('r-b3').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.ta
 let _rz; window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{ if(!$('v-doanh-thu').hidden) rChart() },150)});
 
 
+
+/* ===== Điện thoại: bộ lọc thu gọn, gợi ý vuốt ngang, nút lên đầu ===== */
+(function(){
+  const mq=window.matchMedia('(max-width:700px)');
+  const sum=sec=>{const P=[];
+    sec.querySelectorAll('select').forEach(x=>{const o=x.selectedOptions[0]; if(o&&x.selectedIndex>0)P.push(o.text.replace(/^.* - /,''))});
+    sec.querySelectorAll('.seg').forEach(g=>{const b=g.querySelector('[aria-pressed="true"]'); if(b&&b.dataset.v!=='all')P.push(b.textContent.trim())});
+    sec.querySelectorAll('input[type=search]').forEach(x=>{if(x.value.trim())P.push('“'+x.value.trim()+'”')});
+    return P.length?P.join(' · '):'Tất cả';};
+  document.querySelectorAll('section.filters.l,section.filters.r').forEach(sec=>{
+    const b=document.createElement('button'); b.type='button'; b.className='ftog'; b.innerHTML='<b>⚙ Bộ lọc</b><span></span><i>▾</i>';
+    sec.parentNode.insertBefore(b,sec);
+    const upd=()=>{b.querySelector('span').textContent=sum(sec); b.querySelector('i').textContent=sec.classList.contains('fcol')?'▾':'▴'};
+    b.addEventListener('click',()=>{sec.classList.toggle('fcol');upd()});
+    const ev=()=>setTimeout(upd,0); sec.addEventListener('change',ev); sec.addEventListener('click',ev); sec.addEventListener('input',ev);
+    const apply=()=>{ if(mq.matches) sec.classList.add('fcol'); else sec.classList.remove('fcol'); upd() };
+    apply(); mq.addEventListener('change',apply);
+    new MutationObserver(upd).observe(sec,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+  });
+  // bộ lọc trang Tra cứu: thu gọn sẵn trên điện thoại
+  const fb=document.getElementById('p-filbox'); if(fb&&mq.matches) fb.open=false;
+  // gợi ý vuốt ngang
+  document.querySelectorAll('.box .scroll').forEach(sc=>{ if(sc.querySelector('table')){ const h=document.createElement('div'); h.className='shint'; h.textContent='← vuốt ngang để xem thêm cột →'; sc.parentNode.insertBefore(h,sc) } });
+  // nút lên đầu trang
+  const t=document.createElement('button'); t.type='button'; t.className='totop'; t.setAttribute('aria-label','Lên đầu trang'); t.textContent='↑'; document.body.appendChild(t);
+  t.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  window.addEventListener('scroll',()=>t.classList.toggle('on',window.scrollY>700),{passive:true});
+})();
 function parseBuf(k,buf){
     if(k==='spBan'||k==='spTon') return parseSP(k,buf);
     const wb=XLSX.read(buf,{type:'array'});
