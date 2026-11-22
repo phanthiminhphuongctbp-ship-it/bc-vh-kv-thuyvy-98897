@@ -511,7 +511,7 @@ body.noel .box>.hd,body.noel .tbar{padding-top:16px}
     <details class="box fold" open><summary class="hd"><h2 id="h-t4t">Top sản phẩm hủy, đối chiếu clear tồn</h2><span class="meta" id="h-m4"></span></summary>
       <div class="scroll"><table class="rt rk hsp"><thead id="h-th4"></thead><tbody id="h-tb4"></tbody></table></div></details>
     <details class="box fold" id="h-bx5"><summary class="hd"><h2>Vòng đời hàng thịt: nhập, bán, hủy, clear</h2><span class="meta" id="h-m5"></span></summary>
-      <div class="lnote">Clear tồn = nhập − bán − hủy − chuyển kho. Số dương là tồn còn dư bị clear. Số âm là bán nhiều hơn nhập, thường do nhập liệu hoặc chuyển hàng chưa ghi.</div>
+      <div class="lnote">Clear tồn = nhập − bán − hủy − chuyển kho. Số dương là hàng mất do clear (tồn còn dư bị xóa, tính vào hao hụt). Số âm là dư do clear (bán nhiều hơn nhập, thường do nhập liệu hoặc chuyển hàng chưa ghi).</div>
       <div class="scroll"><table class="rt rk hlc"><thead id="h-th5"></thead><tbody id="h-tb5"></tbody></table></div></details>
     <details class="box fold" id="h-bx6"><summary class="hd"><h2>Người hủy nhiều nhất</h2><span class="meta" id="h-m6"></span></summary>
       <div class="scroll"><table class="rt rk hpp"><thead id="h-th6"></thead><tbody id="h-tb6"></tbody></table></div></details>
@@ -1378,7 +1378,7 @@ function hShopsClear(o,cr,R){
   const code=o.p[0],M=new Map(); for(const r of cr){ if(R.prods[r[2]][0]!==code) continue; const n=R.shops[r[1]]; let x=M.get(n); if(!x){x={n,v:0,q:0};M.set(n,x)} x.v+=r[4];x.q+=r[3] }
   const L=[...M.values()].sort((a,b)=>b.v-a.v), u=esc(o.p[4]||''), cf=v=>`<span class="${v>0?'down':v<0?'up':''}">${v>0?'+':''}${nf.format(Math.round(v))} đ</span>`, q=v=>(Math.round(v*100)/100).toLocaleString('vi-VN')+' '+u;
   const t=L.reduce((a,x)=>({v:a.v+x.v,q:a.q+x.q}),{v:0,q:0});
-  return `<div class="scroll"><table><thead><tr><th>Shop (${L.length})</th><th>Clear tồn</th><th>SL clear</th></tr></thead><tbody><tr class="tt"><td>Toàn bộ</td><td>${cf(t.v)}</td><td>${q(t.q)}</td></tr>`+L.map(x=>`<tr><td>${esc(hShort(x.n))}</td><td>${cf(x.v)}</td><td>${q(x.q)}</td></tr>`).join('')+`</tbody></table></div>`;
+  return `<div class="scroll"><table><thead><tr><th>Shop (${L.length})</th><th>Mất do clear</th><th>SL clear</th></tr></thead><tbody><tr class="tt"><td>Toàn bộ</td><td>${cf(t.v)}</td><td>${q(t.q)}</td></tr>`+L.map(x=>`<tr><td>${esc(hShort(x.n))}</td><td>${cf(x.v)}</td><td>${q(x.q)}</td></tr>`).join('')+`</tbody></table></div>`;
 }
 function hShopsOf(o,hr,tr,cr,K,T,R){
   const code=o.p[0], M=new Map(), g=n=>{let x=M.get(n); if(!x){x={n,huy:0,sl:0,late:0,cl:null};M.set(n,x)} return x};
@@ -1388,7 +1388,7 @@ function hShopsOf(o,hr,tr,cr,K,T,R){
   const L=[...M.values()].sort((a,b)=>(b.huy-a.huy)||((b.cl||0)-(a.cl||0))), u=esc(o.p[2]||'');
   const cf=v=>v==null?'–':`<span class="${v>0?'down':v<0?'up':''}">${v>0?'+':''}${nf.format(Math.round(v*10)/10)}${kg?' kg':' đ'}</span>`;
   const tot=L.reduce((a,x)=>({huy:a.huy+x.huy,sl:a.sl+x.sl,late:a.late+x.late,cl:a.cl+(x.cl||0)}),{huy:0,sl:0,late:0,cl:0});
-  return `<div class="scroll"><table><thead><tr><th>Shop (${L.length})</th><th>Tiền hủy</th><th>SL hủy</th><th>% hủy từ 21h</th>${SRC_H()==='huy'?'':'<th>Clear tồn</th>'}</tr></thead><tbody>`
+  return `<div class="scroll"><table><thead><tr><th>Shop (${L.length})</th><th>Tiền hủy</th><th>SL hủy</th><th>% hủy từ 21h</th>${SRC_H()==='huy'?'':'<th>Mất do clear</th>'}</tr></thead><tbody>`
     +`<tr class="tt"><td>Toàn bộ</td><td>${nf.format(tot.huy)}</td><td>${(Math.round(tot.sl*100)/100).toLocaleString("vi-VN")} ${u}</td><td>${tot.huy?pf1.format(tot.late/tot.huy):'–'}</td>${SRC_H()==='huy'?'':`<td>${cf(tot.cl)}</td>`}</tr>`
     +L.map(x=>`<tr><td>${esc(hShort(x.n))}</td><td>${x.huy?nf.format(x.huy):'–'}</td><td>${x.sl?(Math.round(x.sl*100)/100).toLocaleString("vi-VN")+' '+u:'–'}</td><td>${x.huy?pf1.format(x.late/x.huy):'–'}</td>${SRC_H()==='huy'?'':`<td>${cf(x.cl)}</td>`}</tr>`).join('')+`</tbody></table></div>`;
 }
@@ -1410,7 +1410,7 @@ function hRender(){
   // ---- KPI
   const sum=(a,f)=>a.reduce((o,x)=>o+f(x),0), tien=sum(hr,r=>r[3]), late=sum(hr.filter(r=>r[5]>=21),r=>r[3]);
   const days=new Set(hr.map(r=>r[4])), clv=sum(cr,r=>r[4]), clkg=sum(tr,r=>r[7]);
-  const k=[['Tiền hủy hàng',fs(tien)+' đ',nf.format(hr.length)+' dòng hủy'],['Hủy từ 21h trở đi',tien?pf1.format(late/tien):'–',fs(late)+' đ'],['Hủy trung bình mỗi ngày',days.size?fs(tien/days.size)+' đ':'–',days.size+' ngày có hủy'],['Clear tồn rau củ, thủy hải sản',(clv>0?'+':'')+fs(clv)+' đ',nf.format(cr.length)+' dòng · ròng'],['Clear tồn thịt',(clkg>0?'+':'')+nf.format(Math.round(clkg))+' kg',nf.format(tr.length)+' dòng · ròng']];
+  const k=[['Tiền hủy hàng',fs(tien)+' đ',nf.format(hr.length)+' dòng hủy'],['Hủy từ 21h trở đi',tien?pf1.format(late/tien):'–',fs(late)+' đ'],['Hủy trung bình mỗi ngày',days.size?fs(tien/days.size)+' đ':'–',days.size+' ngày có hủy'],['Mất do clear: rau củ, thủy hải sản',(clv>0?'+':'')+fs(clv)+' đ',nf.format(cr.length)+' dòng · dương mất, âm dư'],['Mất do clear: thịt',(clkg>0?'+':'')+nf.format(Math.round(clkg))+' kg',nf.format(tr.length)+' dòng · dương mất, âm dư']];
   if(SRC==='huy') k.splice(3); else if(SRC==='clear') k.splice(0,3);
   $('h-kpis').innerHTML=k.map(([a,b,c],i)=>`<div class="kpi${i===0?' hl':''}"><div class="k">${a}</div><div class="v">${b}</div><div class="s">${esc(c)}</div></div>`).join('');
   // ---- theo ngày
@@ -1431,11 +1431,11 @@ function hRender(){
   for(const r of tr) get(T.shops[r[0]]).clkg+=r[7];
   const SL=[...sh.values()].map(o=>({...o,tot:o.huy+Math.max(0,o.clv)})).sort((a,b)=>b.tot-a.tot), tt=sum(SL,o=>o.tot), mxs=Math.max(1,...SL.map(o=>o.tot));
   const sH=SRC!=='clear', sC=SRC!=='huy', colsH=[];
-  const totLabel=SRC==='huy'?'Tiền hủy':SRC==='clear'?'Clear tồn (phần mất)':'Tổng hao hụt';
+  const totLabel=SRC==='huy'?'Tiền hủy':SRC==='clear'?'Mất do clear':'Tổng hao hụt';
   const cols=[['tot',totLabel,o=>`<td class="n"><div class="bw"><span>${nf.format(o.tot)}</span><u><i style="width:${(o.tot/mxs*100).toFixed(1)}%;background:var(--loss)"></i></u></div></td>`]];
   if(sH&&sC) cols.push(['huy','Tiền hủy',o=>`<td class="n">${nf.format(o.huy)}</td>`]);
   if(sH) cols.push(['late','% hủy từ 21h',o=>`<td class="n">${o.huy?pf1.format(o.late/o.huy):'–'}</td>`],['dong','Dòng hủy',o=>`<td class="n">${o.dong}</td>`]);
-  if(sC) cols.push(['clv','Clear tồn rau, thủy hải sản (ròng)',o=>`<td class="n"><span class="${o.clv>0?'down':o.clv<0?'up':''}">${o.clv?(o.clv>0?'+':'')+nf.format(o.clv):'–'}</span></td>`],['clkg','Clear tồn thịt (kg)',o=>`<td class="n"><span class="${o.clkg>0?'down':o.clkg<0?'up':''}">${o.clkg?(o.clkg>0?'+':'')+nf.format(Math.round(o.clkg*10)/10):'–'}</span></td>`]);
+  if(sC) cols.push(['clv','Mất do clear: rau, thủy hải sản (âm là dư)',o=>`<td class="n"><span class="${o.clv>0?'down':o.clv<0?'up':''}">${o.clv?(o.clv>0?'+':'')+nf.format(o.clv):'–'}</span></td>`],['clkg','Mất do clear: thịt, kg (âm là dư)',o=>`<td class="n"><span class="${o.clkg>0?'down':o.clkg<0?'up':''}">${o.clkg?(o.clkg>0?'+':'')+nf.format(Math.round(o.clkg*10)/10):'–'}</span></td>`]);
   $('h-th2').innerHTML=`<tr><th>Shop (xếp theo ${esc(totLabel.toLowerCase())})</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr>`;
   $('h-tb2').innerHTML=SL.length?SL.map((o,i)=>`<tr class="rk-row${H.shopName===o.n?' on':''}" tabindex="0" data-n="${esc(o.n)}"><th scope="row"><span class="rkn">${i+1}</span><b>${esc(hShort(o.n))}</b><small>${esc(o.n.split(' - ')[0])}</small></th>${cols.map(c=>c[2](o)).join('')}</tr>`).join(''):`<tr><td class="empty" colspan="${cols.length+1}">Không có dữ liệu khớp bộ lọc.</td></tr>`;
   $('h-m2').textContent=`${SL.length} shop · `+(SRC==='huy'?'chỉ tính hủy hàng':SRC==='clear'?'chỉ tính clear tồn':'tổng hao hụt = tiền hủy + clear tồn rau, thủy hải sản (nếu dương)')+' · bấm shop để lọc';
@@ -1444,7 +1444,7 @@ function hRender(){
   const kp=new Map(); for(const r of T.rows){ if(!inD(r[8])||!inShop(T.shops[r[0]])) continue; const code=T.models[r[1]][0]; kp.set(code,(kp.get(code)||0)+r[7]) }
   const pm=new Map(); for(const r of hr){let o=pm.get(r[1]); if(!o){o={pi:r[1],p:K.prods[r[1]],huy:0,sl:0,sh:new Set(),g:B.pg[r[1]]};pm.set(r[1],o)} o.huy+=r[3];o.sl+=r[2];o.sh.add(r[0])}
   const PL=[...pm.values()].sort((a,b)=>b.huy-a.huy), P15=PL.slice(0,15), GL={thit:'Thịt',ca:'Cá, hải sản',rau:'Rau, trái cây, khác'};
-  $('h-th4').innerHTML=SRC==='huy'?'<tr><th>Sản phẩm</th><th>Tiền hủy</th><th>% tổng hủy</th><th>SL hủy</th><th>Số shop hủy</th></tr>':'<tr><th>Sản phẩm</th><th>Tiền hủy</th><th>% tổng hủy</th><th>SL hủy</th><th>Số shop hủy</th><th>Clear tồn</th><th>Ghi chú</th></tr>';
+  $('h-th4').innerHTML=SRC==='huy'?'<tr><th>Sản phẩm</th><th>Tiền hủy</th><th>% tổng hủy</th><th>SL hủy</th><th>Số shop hủy</th></tr>':'<tr><th>Sản phẩm</th><th>Tiền hủy</th><th>% tổng hủy</th><th>SL hủy</th><th>Số shop hủy</th><th>Mất do clear</th><th>Ghi chú</th></tr>';
   $('h-tb4').innerHTML=P15.length?P15.map((o,i)=>{const cv=cp.get(o.p[0]), ck=kp.get(o.p[0]); let ct='–',tag='';
     if(ck!=null){ct=`<span class="${ck>0?'down':ck<0?'up':''}">${ck>0?'+':''}${nf.format(Math.round(ck*10)/10)} kg</span>`; if(ck>0)tag=hTag('cc','Hủy và còn clear')}
     else if(cv!=null){ct=`<span class="${cv>0?'down':cv<0?'up':''}">${cv>0?'+':''}${nf.format(cv)} đ</span>`; if(cv>0.2*o.huy)tag=hTag('cc','Hủy và còn clear')}
@@ -1455,7 +1455,7 @@ function hRender(){
   if(SRC==='clear'){
     const cm=new Map(); for(const r of cr){ let o=cm.get(r[2]); if(!o){o={pi:r[2],p:R.prods[r[2]],clv:0,sl:0,sh:new Set(),pos:0};cm.set(r[2],o)} o.clv+=r[4];o.sl+=r[3];o.sh.add(r[1]); if(r[4]>0)o.pos+=r[4] }
     PC=[...cm.values()].sort((a,b)=>b.clv-a.clv); const C15=PC.slice(0,15), totP=sum(PC,o=>Math.max(0,o.clv));
-    $('h-th4').innerHTML='<tr><th>Sản phẩm</th><th>Clear tồn (đ)</th><th>% tổng clear</th><th>SL clear</th><th>Số shop</th></tr>';
+    $('h-th4').innerHTML='<tr><th>Sản phẩm</th><th>Mất do clear (đ)</th><th>% tổng mất do clear</th><th>SL clear</th><th>Số shop</th></tr>';
     $('h-tb4').innerHTML=C15.length?C15.map((o,i)=>{const on=H.open.has('c:'+o.p[0]);
       return `<tr class="pr${on?' on':''}" data-o="${esc('c:'+o.p[0])}" tabindex="0"><th scope="row"><b><span class="chev">▸</span><span class="pn">${i+1}</span>${esc(o.p[1])}</b><small>${esc(o.p[0])} · ${esc(o.p[2])}</small></th><td class="n"><span class="${o.clv>0?'down':o.clv<0?'up':''}">${o.clv>0?'+':''}${nf.format(Math.round(o.clv))}</span></td><td class="n">${totP&&o.clv>0?pf1.format(o.clv/totP):'–'}</td><td class="n">${(Math.round(o.sl*100)/100).toLocaleString('vi-VN')} ${esc(o.p[4])}</td><td class="n">${o.sh.size}</td></tr>`+(on?`<tr class="xp"><td colspan="5">${hShopsClear(o,cr,R)}</td></tr>`:'')}).join(''):'<tr><td class="empty" colspan="5">Không có dữ liệu khớp bộ lọc.</td></tr>';
     $('h-m4').textContent=PC.length?`Bấm vào sản phẩm để xem từng shop · rau củ, thủy hải sản (thịt xem ở bảng vòng đời) · ${PC.length} sản phẩm`:'';
@@ -1466,7 +1466,7 @@ function hRender(){
   // ---- vòng đời thịt
   const lc=new Map(); for(const r of tr){let o=lc.get(r[1]); if(!o){o={m:T.models[r[1]],nhap:0,ng:0,gg:0,huy:0,ck:0,cl:0,sh:new Set()};lc.set(r[1],o)} o.nhap+=r[2];o.ng+=r[3];o.gg+=r[4];o.huy+=r[5];o.ck+=r[6];o.cl+=r[7];o.sh.add(r[0])}
   const LL=[...lc.values()].sort((a,b)=>Math.abs(b.cl)-Math.abs(a.cl)), fk=v=>nf.format(Math.round(v*10)/10);
-  $('h-th5').innerHTML='<tr><th>Mã thịt</th><th>Nhập</th><th>Bán nguyên giá</th><th>Bán giảm giá</th><th>Hủy</th><th>Chuyển kho</th><th>Clear tồn</th><th>Ghi chú</th></tr>';
+  $('h-th5').innerHTML='<tr><th>Mã thịt</th><th>Nhập</th><th>Bán nguyên giá</th><th>Bán giảm giá</th><th>Hủy</th><th>Chuyển kho</th><th>Mất do clear</th><th>Ghi chú</th></tr>';
   $('h-tb5').innerHTML=LL.length?LL.map(o=>{const base=Math.max(o.nhap,o.ng+o.gg,1); let tag=''; if(Math.abs(o.cl)>=20&&Math.abs(o.cl)>0.4*base) tag=o.cl<0?hTag('cc','Tồn âm lớn'):hTag('ng2','Dư tồn lớn');
     return `<tr><th scope="row"><b>${esc(o.m[1])}</b><small>${esc(o.m[0])} · ${o.sh.size} shop</small></th><td class="n">${fk(o.nhap)}</td><td class="n">${fk(o.ng)}</td><td class="n">${fk(o.gg)}</td><td class="n">${fk(o.huy)}</td><td class="n">${o.ck?fk(o.ck):'–'}</td><td class="n"><b class="${o.cl>0?'down':o.cl<0?'up':''}">${o.cl>0?'+':''}${fk(o.cl)}</b></td><td class="n">${tag}</td></tr>`}).join(''):'<tr><td class="empty" colspan="8">Không có dữ liệu thịt khớp bộ lọc.</td></tr>';
   $('h-m5').textContent=LL.length?`${LL.length} mã · đơn vị kg`:'Chọn nhóm Tất cả hoặc có Thịt';
